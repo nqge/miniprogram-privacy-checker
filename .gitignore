@@ -38,6 +38,7 @@ privacy_check_results/
 *.txt
 *.md
 !README.md
+!SKILL.md
 
 # OS
 .DS_Store
