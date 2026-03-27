@@ -1,6 +1,6 @@
 #!/bin/bash
 # 小程序隐私合规检查自动化脚本
-# 使用方法: ./miniprogram-privacy-auto.sh [小程序路径]
+# 使用方法: ./miniprogram-privacy-auto.sh [小程序路径或.wxapkg文件]
 #
 # 基于标准:
 # - 《网络安全标准实践指南-移动互联网应用程序（App）系统权限申请使用指南》
@@ -43,8 +43,12 @@ print_error() {
 print_banner() {
     echo ""
     echo "================================================================================"
-    echo "                        小程序隐私合规检查工具"
+    echo "                        小程序隐私合规检查工具 v2.0"
     echo "================================================================================"
+    echo ""
+    echo "  📊 新增功能"
+    echo "  • SDK 使用检测（友盟、支付宝、腾讯地图等）"
+    echo "  • 隐私政策命名检查"
     echo ""
     echo "  基于官方标准："
     echo "  - 《网络安全标准实践指南-移动互联网应用程序（App）系统权限申请使用指南》"
@@ -73,7 +77,7 @@ check_python() {
 # 检查输入参数
 check_input() {
     if [ -z "$1" ]; then
-        print_info "请输入小程序源代码路径:"
+        print_info "请输入小程序路径或.wxapkg文件:"
         read -r MINIPROGRAM_PATH
     else
         MINIPROGRAM_PATH="$1"
@@ -82,24 +86,37 @@ check_input() {
     # 移除路径末尾的斜杠
     MINIPROGRAM_PATH="${MINIPROGRAM_PATH%/}"
 
-    # 检查路径是否存在
-    if [ ! -d "$MINIPROGRAM_PATH" ]; then
+    # 检测输入类型
+    INPUT_TYPE=""
+
+    if [ -f "$MINIPROGRAM_PATH" ]; then
+        if [[ "$MINIPROGRAM_PATH" == *.wxapkg ]]; then
+            INPUT_TYPE="wxapkg"
+            print_info "检测到 .wxapkg 文件，将进行自动反编译"
+        else
+            INPUT_TYPE="project"
+            print_info "检测到项目目录"
+        fi
+    else
         print_error "路径不存在: $MINIPROGRAM_PATH"
         exit 1
     fi
 
-    # 检查是否包含 app.json
-    if [ ! -f "$MINIPROGRAM_PATH/app.json" ]; then
-        print_warning "未找到 app.json 文件"
-        print_warning "请确保路径是小程序根目录"
-        read -p "是否继续? (y/n) " -n 1 -r
-        echo
-        if [[ ! $REPLY =~ ^[Yy]$ ]]; then
-            exit 1
+    # 检查是否包含 app.json（项目目录）
+    if [ "$INPUT_TYPE" = "project" ]; then
+        if [ ! -f "$MINIPROGRAM_PATH/app.json" ]; then
+            print_warning "未找到 app.json 文件"
+            print_warning "请确保路径是小程序根目录"
+            read -p "是否继续? (y/n) " -n 1 -r
+            echo
+            if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+                exit 1
+            fi
         fi
     fi
 
-    print_success "小程序路径: $MINIPROGRAM_PATH"
+    print_success "检查类型: $INPUT_TYPE"
+    print_success "输入路径: $MINIPROGRAM_PATH"
     print_success "输出目录: $OUTPUT_DIR"
 }
 
@@ -116,11 +133,62 @@ clean_old_results() {
     print_success "创建输出目录: $OUTPUT_DIR"
 }
 
+# 反编译 .wxapkg 文件（如果需要）
+unpack_wxapkg() {
+    if [ "$INPUT_TYPE" != "wxapkg" ]; then
+        return 0
+    fi
+
+    print_info ""
+    print_info "========================================"
+    print_info "反编译阶段"
+    print_info "========================================"
+    echo ""
+
+    TEMP_DIR=$(mktemp -d -t miniprogram_unpacked_XXXXXX)
+
+    # 使用 unpacker 工具
+    python3 "$CORE_DIR/unpacker.py" "$MINIPROGRAM_PATH" -o "$TEMP_DIR"
+
+    if [ $? -ne 0 ]; then
+        print_error "反编译失败"
+        return 1
+    fi
+
+    # 验证反编译结果
+    if [ ! -f "$TEMP_DIR/app.json" ]; then
+        print_error "反编译结果验证失败，未找到 app.json"
+        rm -rf "$TEMP_DIR"
+        return 1
+    fi
+
+    # 更新输入路径为反编译后的目录
+    MINIPROGRAM_PATH="$TEMP_DIR"
+    INPUT_TYPE="project"
+
+    print_success "反编译成功，项目路径: $MINIPROGRAM_PATH"
+
+    # 保持临时目录，稍后清理
+    TEMP_CLEANUP_DONE=false
+    cleanup_temp_dir() {
+        if [ "$TEMP_CLEANUP_DONE" = true ] || [ "$INPUT_TYPE" != "wxapkg" ]; then
+            return 0
+        fi
+
+        print_info "清理临时目录..."
+        rm -rf "$TEMP_DIR"
+        TEMP_CLEANUP_DONE=true
+        print_success "清理完成"
+    }
+
+    return 0
+}
+
 # 阶段 1: 权限声明检查
 check_permissions() {
     print_info ""
     print_info "========================================"
-    print_info "阶段 1/5: 权限声明检查"
+    print_info "阶段 1/9: 权限声明检查"
     print_info "========================================"
     echo ""
 
@@ -138,7 +206,7 @@ check_permissions() {
 scan_apis() {
     print_info ""
     print_info "========================================"
-    print_info "阶段 2/5: 敏感 API 扫描"
+    print_info "阶段 2/9: 敏感 API 扫描"
     print_info "========================================"
     echo ""
 
@@ -156,7 +224,7 @@ scan_apis() {
 analyze_dataflow() {
     print_info ""
     print_info "========================================"
-    print_info "阶段 3/5: 数据流分析"
+    print_info "阶段 3/9: 数据流分析"
     print_info "========================================"
     echo ""
 
@@ -174,7 +242,7 @@ analyze_dataflow() {
 check_debug() {
     print_info ""
     print_info "========================================"
-    print_info "阶段 4/7: 动态调试风险检测"
+    print_info "阶段 4/9: 动态调试风险检测"
     print_info "========================================"
     echo ""
 
@@ -192,7 +260,7 @@ check_debug() {
 check_log_leaks() {
     print_info ""
     print_info "========================================"
-    print_info "阶段 5/7: 日志泄露风险检测"
+    print_info "阶段 5/9: 日志泄露风险检测"
     print_info "========================================"
     echo ""
 
@@ -210,7 +278,7 @@ check_log_leaks() {
 check_privacy_policy() {
     print_info ""
     print_info "========================================"
-    print_info "阶段 6/7: 隐私政策检查"
+    print_info "阶段 6/9: 隐私政策检查"
     print_info "========================================"
     echo ""
 
@@ -224,11 +292,47 @@ check_privacy_policy() {
     fi
 }
 
-# 阶段 7: 生成综合报告
+# 阶段 7: 隐私政策命名检查
+check_privacy_naming() {
+    print_info ""
+    print_info "========================================"
+    print_info "阶段 7/9: 隐私政策命名检查"
+    print_info "========================================"
+    echo ""
+
+    python3 "$CORE_DIR/privacy_naming_checker.py" "$MINIPROGRAM_PATH" -o "$OUTPUT_DIR"
+
+    if [ $? -eq 0 ]; then
+        print_success "隐私政策命名检查完成"
+    else
+        print_error "隐私政策命名检查失败"
+        return 1
+    fi
+}
+
+# 阶段 8: SDK 检测
+check_sdk_usage() {
+    print_info ""
+    print_info "========================================"
+    print_info "阶段 8/9: SDK 检测"
+    print_info "========================================"
+    echo ""
+
+    python3 "$CORE_DIR/sdk_detector.py" "$MINIPROGRAM_PATH" -o "$OUTPUT_DIR"
+
+    if [ $? -eq 0 ]; then
+        print_success "SDK 使用检测完成"
+    else
+        print_error "SDK 使用检测失败"
+        return 1
+    fi
+}
+
+# 阶段 9: 生成综合报告
 generate_report() {
     print_info ""
     print_info "========================================"
-    print_info "阶段 7/7: 生成综合报告"
+    print_info "阶段 9/9: 生成综合报告"
     print_info "========================================"
     echo ""
 
@@ -271,31 +375,33 @@ main() {
     check_python
 
     # 检查输入参数
-    check_input "$1"
+    check_input
 
     # 清理旧的检查结果
     clean_old_results
 
-    # 阶段 1: 权限声明检查
+    # 反编译 .wxapkg 文件（如果需要）
+    unpack_wxapkg
+    RESULT=$?
+
+    if [ $RESULT -ne 0 ]; then
+        print_error "反编译失败，退出"
+        exit 1
+    fi
+
+    # 执行所有检查阶段
     check_permissions
-
-    # 阶段 2: 敏感 API 扫描
     scan_apis
-
-    # 阶段 3: 数据流分析
     analyze_dataflow
-
-    # 阶段 4: 动态调试风险检测
     check_debug
-
-    # 阶段 5: 日志泄露风险检测
     check_log_leaks
-
-    # 阶段 6: 隐私政策检查
     check_privacy_policy
-
-    # 阶段 7: 生成综合报告
+    check_privacy_naming
+    check_sdk_usage
     generate_report
+
+    # 清理临时目录
+    cleanup_temp_dir
 
     # 显示报告位置
     show_report_location
