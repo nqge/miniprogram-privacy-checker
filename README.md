@@ -4,6 +4,7 @@
 
 ## 🎯 功能特性
 
+### 核心功能
 - ✅ **权限声明检查** - 验证 app.json 中的权限声明是否完整
 - ✅ **敏感 API 扫描** - 检测代码中的敏感 API 调用
 - ✅ **数据流分析** - 分析数据收集、存储、传输流程
@@ -12,6 +13,14 @@
 - ✅ **隐私政策检查** - 检查隐私政策文件的完整性
 - ✅ **自动反编译** - 支持 .wxapkg 文件自动反编译
 - ✅ **合规报告生成** - 自动生成综合合规报告和修复建议
+
+### 新增功能 🆕
+- ✅ **个人信息收集使用自评估** - 28个评估点，5大类别，基于官方自评估指南
+- ✅ **申请权限确认单生成** - 38项权限检查，16个权限组，标准格式确认单
+- ✅ **隐私政策命名检查** - 检测多种命名格式（privacy.md、隐私政策.txt等）
+- ✅ **第三方SDK检测** - 检测友盟、支付宝、腾讯地图等常见SDK
+- ✅ **增强版检测** - 8种精确检测模式（权限、广告、存储、网络等）
+- ✅ **综合报告生成** - 简洁的概要视图，包含评分和风险等级
 
 ## 🚀 快速开始
 
@@ -31,6 +40,7 @@ cat privacy_check_results/privacy_compliance_report.md
 ### 方式 2: 使用单个工具
 
 ```bash
+# 基础检查工具
 # 1. 权限声明检查
 python3 core/permission_checker.py /path/to/miniprogram -o privacy_check_results
 
@@ -45,6 +55,22 @@ python3 core/privacy_policy_checker.py /path/to/miniprogram -o privacy_check_res
 
 # 5. 生成综合报告
 python3 core/report_generator.py -r privacy_check_results -o privacy_compliance_report.md
+
+# 新增工具 🆕
+# 6. 个人信息收集使用自评估（28个评估点）
+python3 core/self_assessment_tool.py /path/to/miniprogram -o privacy_check_results
+
+# 7. 申请权限确认单生成（38项权限）
+python3 core/permission_confirmation.py /path/to/miniprogram -o privacy_check_results
+
+# 8. 隐私政策命名检查
+python3 core/privacy_naming_checker.py /path/to/miniprogram -o privacy_check_results
+
+# 9. 第三方SDK检测
+python3 core/sdk_detector.py /path/to/miniprogram -o privacy_check_results
+
+# 10. 增强版检测（8种检测模式）
+python3 core/enhanced_checker.py /path/to/miniprogram -o privacy_check_results
 ```
 
 ## 📋 检查流程
@@ -106,15 +132,25 @@ miniprogram-privacy/
 
 ```
 privacy_check_results/
-├── permission_check.json               # 权限检查结果（JSON）
-├── permission_check_report.txt        # 权限检查报告（文本）
-├── api_scan.json                      # API 扫描结果（JSON）
-├── api_scan_report.txt                 # API 扫描报告（文本）
-├── dataflow_analysis.json              # 数据流分析结果（JSON）
-├── dataflow_report.txt                 # 数据流分析报告（文本）
-├── privacy_policy_check.json           # 隐私政策检查结果（JSON）
-├── privacy_policy_report.txt           # 隐私政策检查报告（文本）
-└── privacy_compliance_report.md       # 综合合规报告（Markdown）
+├── 基础检查报告
+│   ├── permission_check.json               # 权限检查结果（JSON）
+│   ├── permission_check_report.txt        # 权限检查报告（文本）
+│   ├── api_scan.json                      # API 扫描结果（JSON）
+│   ├── api_scan_report.txt                 # API 扫描报告（文本）
+│   ├── dataflow_analysis.json              # 数据流分析结果（JSON）
+│   ├── dataflow_report.txt                 # 数据流分析报告（文本）
+│   ├── privacy_policy_check.json           # 隐私政策检查结果（JSON）
+│   ├── privacy_policy_report.txt           # 隐私政策检查报告（文本）
+│   └── privacy_compliance_report.md       # 综合合规报告（Markdown）
+│
+└── 新增报告 🆕
+    ├── 自评估表.txt                        # 个人信息收集使用自评估表（28项）
+    ├── self_assessment.json                # 自评估结果（JSON）
+    ├── 权限确认单.txt                      # 申请权限确认单（38项）
+    ├── permission_confirmation.json        # 权限确认结果（JSON）
+    ├── privacy_naming_check.json           # 隐私政策命名检查结果
+    ├── sdk_detection.json                  # 第三方SDK检测结果
+    └── enhanced_check.json                 # 增强版检测结果
 ```
 
 ## 🔧 常见问题
