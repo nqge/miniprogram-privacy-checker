@@ -328,21 +328,64 @@ check_sdk_usage() {
     fi
 }
 
-# 阶段 9: 生成综合报告
-generate_report() {
+# 阶段 9: 生成小程序申请权限确认单
+generate_permission_confirmation() {
     print_info ""
     print_info "========================================"
-    print_info "阶段 9/9: 生成综合报告"
+    print_info "阶段 9/11: 生成小程序申请权限确认单"
     print_info "========================================"
     echo ""
 
+    python3 "$CORE_DIR/permission_confirmation.py" "$MINIPROGRAM_PATH" -o "$OUTPUT_DIR"
+
+    if [ $? -eq 0 ]; then
+        print_success "权限确认单生成完成"
+    else
+        print_warning "权限确认单生成失败（非关键）"
+    fi
+}
+
+# 阶段 10: 生成小程序收集使用个人信息自评估表
+generate_self_assessment() {
+    print_info ""
+    print_info "========================================"
+    print_info "阶段 10/11: 生成个人信息收集使用自评估表"
+    print_info "========================================"
+    echo ""
+
+    python3 "$CORE_DIR/self_assessment_tool.py" "$MINIPROGRAM_PATH" -o "$OUTPUT_DIR"
+
+    if [ $? -eq 0 ]; then
+        print_success "自评估表生成完成"
+    else
+        print_warning "自评估表生成失败（非关键）"
+    fi
+}
+
+# 阶段 11: 生成综合报告
+generate_report() {
+    print_info ""
+    print_info "========================================"
+    print_info "阶段 11/11: 生成综合报告"
+    print_info "========================================"
+    echo ""
+
+    # 生成 Markdown 格式报告
     python3 "$CORE_DIR/report_generator.py" -r "$OUTPUT_DIR" -o "$OUTPUT_DIR/privacy_compliance_report.md"
 
     if [ $? -eq 0 ]; then
-        print_success "综合报告生成完成"
+        print_success "Markdown 综合报告生成完成"
     else
-        print_error "综合报告生成失败"
-        return 1
+        print_warning "Markdown 报告生成失败（非关键）"
+    fi
+
+    # 生成概要报告（包含权限确认单和自评估表的引用）
+    python3 "$CORE_DIR/summary_generator.py" "$OUTPUT_DIR" -m "$MINIPROGRAM_PATH" -o "$OUTPUT_DIR/summary_report.txt"
+
+    if [ $? -eq 0 ]; then
+        print_success "概要报告生成完成"
+    else
+        print_warning "概要报告生成失败（非关键）"
     fi
 }
 
@@ -398,6 +441,8 @@ main() {
     check_privacy_policy
     check_privacy_naming
     check_sdk_usage
+    generate_permission_confirmation
+    generate_self_assessment
     generate_report
 
     # 清理临时目录

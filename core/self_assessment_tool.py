@@ -225,7 +225,7 @@ class SelfAssessmentTool:
                 'point': '是否收集与业务功能无关的个人信息',
                 'description': '是否收集与业务无关的信息',
                 'check_method': '检查敏感API调用和业务逻辑',
-                'pass_criteria': ''所有收集都与业务相关',
+                'pass_criteria': '所有收集都与业务相关',
                 'risk_level': 'high'
             },
             {
@@ -575,7 +575,8 @@ def print_assessment_table(self, report: Dict, output_dir: str = None):
 
     # 保存评估表
     if output_dir:
-        import os as os.makedirs(output_dir, exist_ok=True)
+        import os
+        os.makedirs(output_dir, exist_ok=True)
 
         # 保存文本格式评估表
         table_file = os.path.join(output_dir, '自评估表.txt')

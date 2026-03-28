@@ -372,7 +372,7 @@ class ReportGenerator:
                 if critical_issues:
                     f.write("### 🚨 严重问题\n\n")
                     for i, issue in enumerate(critical_issues, 1):
-                        f.fwrite(f"{i}. **{issue.get('category', '未知')}**  \n")
+                        f.write(f"{i}. **{issue.get('category', '未知')}**  \n")
                         f.write(f"   - **描述**: {issue.get('message', '无描述')}  \n")
                         f.write(f"   - **建议**: {issue.get('suggestion', '无建议')}  \n")
                         if issue.get('file'):
@@ -496,7 +496,7 @@ def main():
     generator.load_reports()
     report = generator.generate()
     generator.print_summary(report)
-    generator.save_markdown_report(report(report, args.output))
+    generator.save_markdown_report(report, args.output)
 
 
 if __name__ == '__main__':
