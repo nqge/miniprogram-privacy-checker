@@ -16,22 +16,28 @@ import argparse
 class ReportGenerator:
     """小程序隐私合规报告生成器"""
 
-    def __init__(self, report_dir: str = 'privacy_check_results'):
+    def __init__(self, report_dir: str = 'privacy_check_results', miniprogram_path: str = None):
         """
         初始化报告生成器
 
         Args:
             report_dir: 检查结果目录
+            miniprogram_path: 小程序路径（用于提取基本信息）
         """
         self.report_dir = Path(report_dir)
+        self.miniprogram_path = Path(miniprogram_path) if miniprogram_path else None
         self.permission_report = None
         self.api_report = None
         self.dataflow_report = None
         self.privacy_policy_report = None
+        self.miniprogram_info = {}
 
     def load_reports(self):
         """加载所有检查报告"""
         print("[*] 加载检查报告...")
+
+        # 加载小程序基本信息
+        self._load_miniprogram_info()
 
         # 加载权限检查报告
         perm_report_path = self.report_dir / 'permission_check.json'
@@ -262,6 +268,65 @@ class ReportGenerator:
 
         return recommendations
 
+    def _load_miniprogram_info(self):
+        """加载小程序基本信息"""
+        if not self.miniprogram_path:
+            return
+
+        print("[*] 加载小程序基本信息...")
+
+        # 尝试从 app.json 读取基本信息
+        app_json_path = self.miniprogram_path / 'app.json'
+        if app_json_path.exists():
+            try:
+                with open(app_json_path, 'r', encoding='utf-8') as f:
+                    app_config = json.load(f)
+
+                # 提取基本信息
+                self.miniprogram_info['appName'] = app_config.get('pages', [])
+                self.miniprogram_info['window'] = app_config.get('window', {})
+                self.miniprogram_info['tabBar'] = app_config.get('tabBar', {})
+                self.miniprogram_info['permission'] = app_config.get('permission', {})
+                self.miniprogram_info['requiredPrivateInfos'] = app_config.get('requiredPrivateInfos', [])
+                self.miniprogram_info['workers'] = app_config.get('workers', '')
+                self.miniprogram_info['networkTimeout'] = app_config.get('networkTimeout', {})
+
+                # 统计页面数量
+                self.miniprogram_info['pageCount'] = len(app_config.get('pages', []))
+
+                print(f"[+] 从 app.json 加载基本信息")
+            except Exception as e:
+                print(f"[-] 读取 app.json 失败: {e}")
+
+        # 尝试从 project.config.json 读取项目信息
+        project_config_path = self.miniprogram_path / 'project.config.json'
+        if project_config_path.exists():
+            try:
+                with open(project_config_path, 'r', encoding='utf-8') as f:
+                    project_config = json.load(f)
+
+                # 提取项目信息
+                self.miniprogram_info['appid'] = project_config.get('appid', '未知')
+                self.miniprogram_info['projectname'] = project_config.get('projectname', '未知')
+                self.miniprogram_info['description'] = project_config.get('description', '')
+                self.miniprogram_info['compileType'] = project_config.get('compileType', '未知')
+                self.miniprogram_info['libVersion'] = project_config.get('libVersion', '未知')
+
+                print(f"[+] 从 project.config.json 加载项目信息")
+            except Exception as e:
+                print(f"[-] 读取 project.config.json 失败: {e}")
+
+        # 添加路径信息
+        self.miniprogram_info['path'] = str(self.miniprogram_path)
+
+        # 如果没有找到 appid，尝试从其他来源获取
+        if 'appid' not in self.miniprogram_info:
+            self.miniprogram_info['appid'] = '未知'
+
+        if 'projectname' not in self.miniprogram_info:
+            # 从路径提取项目名称
+            self.miniprogram_info['projectname'] = self.miniprogram_path.name
+
     def _generate_summary(self, all_issues: list) -> dict:
         """生成摘要"""
         # 统计问题
@@ -293,6 +358,81 @@ class ReportGenerator:
             # 标题
             f.write("# 小程序隐私合规检查报告\n\n")
             f.write(f"**生成时间**: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n\n")
+
+            # 小程序基本信息
+            if self.miniprogram_info:
+                f.write("## 📱 小程序基本信息\n\n")
+                f.write("| 项目 | 信息 |\n")
+                f.write("|------|------|\n")
+
+                if 'projectname' in self.miniprogram_info:
+                    f.write(f"| **项目名称** | {self.miniprogram_info['projectname']} |\n")
+
+                if 'appid' in self.miniprogram_info:
+                    f.write(f"| **AppID** | {self.miniprogram_info['appid']} |\n")
+
+                if 'description' in self.miniprogram_info and self.miniprogram_info['description']:
+                    f.write(f"| **项目描述** | {self.miniprogram_info['description']} |\n")
+
+                if 'pageCount' in self.miniprogram_info:
+                    f.write(f"| **页面数量** | {self.miniprogram_info['pageCount']} 个页面 |\n")
+
+                if 'libVersion' in self.miniprogram_info and self.miniprogram_info['libVersion'] != '未知':
+                    f.write(f"| **基础库版本** | {self.miniprogram_info['libVersion']} |\n")
+
+                if 'compileType' in self.miniprogram_info and self.miniprogram_info['compileType'] != '未知':
+                    f.write(f"| **编译类型** | {self.miniprogram_info['compileType']} |\n")
+
+                if 'permission' in self.miniprogram_info and self.miniprogram_info['permission']:
+                    perm_count = len(self.miniprogram_info['permission'])
+                    f.write(f"| **权限声明** | {perm_count} 项 |\n")
+
+                if 'requiredPrivateInfos' in self.miniprogram_info and self.miniprogram_info['requiredPrivateInfos']:
+                    private_info_count = len(self.miniprogram_info['requiredPrivateInfos'])
+                    f.write(f"| **隐私信息声明** | {private_info_count} 项 |\n")
+
+                if 'path' in self.miniprogram_info:
+                    f.write(f"| **检查路径** | `{self.miniprogram_info['path']}` |\n")
+
+                f.write("\n")
+
+                # 详细信息
+                has_details = False
+
+                # 显示权限声明详情
+                if 'permission' in self.miniprogram_info and self.miniprogram_info['permission']:
+                    if not has_details:
+                        f.write("### 📋 权限声明详情\n\n")
+                        has_details = True
+
+                    for perm, desc in self.miniprogram_info['permission'].items():
+                        desc_text = desc.get('desc', '') if isinstance(desc, dict) else desc
+                        f.write(f"- **{perm}**: {desc_text}\n")
+                    f.write("\n")
+
+                # 显示隐私信息声明详情
+                if 'requiredPrivateInfos' in self.miniprogram_info and self.miniprogram_info['requiredPrivateInfos']:
+                    if not has_details:
+                        f.write("### 🔐 隐私信息声明详情\n\n")
+                        has_details = True
+                    else:
+                        f.write("### 🔐 隐私信息声明详情\n\n")
+
+                    for info in self.miniprogram_info['requiredPrivateInfos']:
+                        f.write(f"- `{info}`\n")
+                    f.write("\n")
+
+                # 显示页面列表
+                if 'appName' in self.miniprogram_info and self.miniprogram_info['appName']:
+                    if not has_details:
+                        f.write("### 📄 页面列表\n\n")
+                        has_details = True
+                    else:
+                        f.write("### 📄 页面列表\n\n")
+
+                    for page in self.miniprogram_info['appName']:
+                        f.write(f"- {page}\n")
+                    f.write("\n")
 
             # 总体评分
             score = report['overall_score']
@@ -490,9 +630,10 @@ def main():
     parser = argparse.ArgumentParser(description='小程序隐私合规报告生成器')
     parser.add_argument('-r', '--report-dir', help='检查结果目录', default='privacy_check_results')
     parser.add_argument('-o', '--output', help='报告输出文件', default='privacy_compliance_report.md')
+    parser.add_argument('-m', '--miniprogram-path', help='小程序路径（用于提取基本信息）')
     args = parser.parse_args()
 
-    generator = ReportGenerator(args.report_dir)
+    generator = ReportGenerator(args.report_dir, args.miniprogram_path)
     generator.load_reports()
     report = generator.generate()
     generator.print_summary(report)

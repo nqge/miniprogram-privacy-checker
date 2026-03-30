@@ -296,8 +296,11 @@ class PermissionChecker:
     def _check_permission_descriptions(self):
         """检查权限描述合规性"""
         for perm, desc in self.declared_permissions.items():
+            # 处理描述格式（可能是字符串或字典）
+            desc_text = desc.get('desc', '') if isinstance(desc, dict) else desc
+
             # 检查描述是否为空
-            if not desc or desc.strip() == '':
+            if not desc_text or desc_text.strip() == '':
                 self.issues.append({
                     'type': 'warning',
                     'message': f'权限 {perm} 的描述为空',
@@ -306,7 +309,7 @@ class PermissionChecker:
                 continue
 
             # 检查描述是否过短
-            if len(desc.strip()) < 10:
+            if len(desc_text.strip()) < 10:
                 self.issues.append({
                     'type': 'warning',
                     'message': f'权限 {perm} 的描述过短',
@@ -316,7 +319,7 @@ class PermissionChecker:
             # 检查是否包含常见的模糊表述
             vague_terms = ['为了更好的用户体验', '为了提供更好的服务', '需要使用']
             for term in vague_terms:
-                if term in desc:
+                if term in desc_text:
                     self.issues.append({
                         'type': 'info',
                         'message': f'权限 {perm} 的描述包含模糊表述: "{term}"',

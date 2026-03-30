@@ -370,8 +370,8 @@ generate_report() {
     print_info "========================================"
     echo ""
 
-    # 生成 Markdown 格式报告
-    python3 "$CORE_DIR/report_generator.py" -r "$OUTPUT_DIR" -o "$OUTPUT_DIR/privacy_compliance_report.md"
+    # 生成 Markdown 格式报告（传递小程序路径）
+    python3 "$CORE_DIR/report_generator.py" -r "$OUTPUT_DIR" -o "$OUTPUT_DIR/privacy_compliance_report.md" -m "$MINIPROGRAM_PATH"
 
     if [ $? -eq 0 ]; then
         print_success "Markdown 综合报告生成完成"

@@ -522,7 +522,7 @@ def print_report(report: Dict, output_dir: str = None):
     print("="*60)
 
     # 评分
-    print(f(f"\n📊 合规评分: {report['score']}/100"))
+    print(f"\n📊 合规评分: {report['score']}/100")
     if report['score'] >= 90:
         print("评级: ⭐⭐⭐⭐⭐ 优秀")
     elif report['score'] >= 70:
