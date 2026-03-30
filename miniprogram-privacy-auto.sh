@@ -387,6 +387,19 @@ generate_report() {
     else
         print_warning "概要报告生成失败（非关键）"
     fi
+
+    # 生成详细权限调用报告
+    print_info ""
+    print_info "生成详细权限调用报告..."
+    python3 "$CORE_DIR/detailed_permission_report.py" "$MINIPROGRAM_PATH" \
+        -s "$OUTPUT_DIR/api_scan.json" \
+        -o "$OUTPUT_DIR/detailed_permission_report.md"
+
+    if [ $? -eq 0 ]; then
+        print_success "详细权限报告生成完成"
+    else
+        print_warning "详细权限报告生成失败（非关键）"
+    fi
 }
 
 # 显示报告位置

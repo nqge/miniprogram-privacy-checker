@@ -359,16 +359,34 @@ class APIScanner:
 
                 # 检查每个敏感 API
                 for api_name in self.SENSITIVE_APIS.keys():
-                    # 简单的模式匹配
-                    pattern = re.compile(re.escape(api_name))
+                    # 增强的模式匹配
+                    # 匹配多种调用形式：
+                    # 1. wx.apiName(...)
+                    # 2. e.apiName(...) (压缩后的代码)
+                    # 3. t.apiName(...)
+                    # 4. n.apiName(...)
+                    patterns = [
+                        re.compile(r'\bwx\.' + re.escape(api_name[3:]) + r'\s*\('),  # wx.apiName
+                        re.compile(r'[etn]\.' + re.escape(api_name[3:]) + r'\s*\('),  # e/t/n.apiName (压缩代码)
+                        re.compile(re.escape(api_name) + r'\s*\('),  # apiName(...)
+                    ]
+
                     for line_num, line in enumerate(lines, 1):
-                        if pattern.search(line):
+                        # 检查所有模式
+                        matched = False
+                        for pattern in patterns:
+                            if pattern.search(line):
+                                matched = True
+                                break
+
+                        if matched:
                             # 提取调用上下文
                             context_start = max(0, line_num - 2)
                             context_end = min(len(lines), line_num + 3)
                             context = lines[context_start:context_end]
 
                             self.api_calls[api_name].append({
+                                'api': api_name,  # 记录标准的 API 名称
                                 'file': str(js_file.relative_to(self.miniprogram_path)),
                                 'line': line_num,
                                 'code': line.strip(),
