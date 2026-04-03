@@ -1,132 +1,201 @@
-# 小程序隐私合规检查技能 v3.4
+# 小程序隐私合规检查技能
 
-> 微信小程序个人信息保护合规性检查工具包
+自动检测微信小程序是否符合《微信小程序个人信息保护规范》和《App违法违规收集使用个人信息行为认定方法》。
 
-[![Version](https://img.shields.io/badge/version-3.4-brightgreen.svg)](https://github.com/nqge/miniprogram-privacy-checker)
-[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![OpenClaw](https://img.shields.io/badge/OpenClaw-Compatible-orange.svg)](https://openclaw.ai)
+## 🎯 功能特性
 
-## ✨ 特性
+### 核心功能
+- ✅ **权限声明检查** - 验证 app.json 中的权限声明是否完整
+- ✅ **敏感 API 扫描** - 检测代码中的敏感 API 调用
+- ✅ **数据流分析** - 分析数据收集、存储、传输流程
+- ✅ **动态调试风险检测** - 检测生产环境中的调试工具和配置
+- ✅ **日志泄露风险检测** - 检测日志输出中的敏感信息
+- ✅ **隐私政策检查** - 检查隐私政策文件的完整性
+- ✅ **自动反编译** - 支持 .wxapkg 文件自动反编译
+- ✅ **合规报告生成** - 自动生成综合合规报告和修复建议
 
-- 🔍 **15 个检查阶段** - 全面覆盖隐私合规要求
-- 🤖 **混合架构** - 静态规则 + AI 智能体双重检测
-- 📊 **自动生成报告** - 权限确认单、自评估表、Word 报告
-- 🚀 **一键运行** - 简单易用的自动化脚本
-- 📝 **详细文档** - 完整的使用指南和参考资料
+### 新增功能 🆕
+- ✅ **个人信息收集使用自评估** - 28个评估点，5大类别，基于官方自评估指南
+- ✅ **申请权限确认单生成** - 38项权限检查，16个权限组，标准格式确认单
+- ✅ **隐私政策命名检查** - 检测多种命名格式（privacy.md、隐私政策.txt等）
+- ✅ **第三方SDK检测** - 检测友盟、支付宝、腾讯地图等常见SDK
+- ✅ **增强版检测** - 8种精确检测模式（权限、广告、存储、网络等）
+- ✅ **综合报告生成** - 简洁的概要视图，包含评分和风险等级
 
 ## 🚀 快速开始
 
+### 方式 1: 使用自动化脚本（推荐）
+
 ```bash
-# 克隆仓库
-git clone https://github.com/nqge/miniprogram-privacy-checker.git
+# 进入技能目录
+cd ~/.openclaw/workspace/skills/miniprogram-privacy
 
-# 安装依赖
-pip install -r requirements.txt
-
-# 运行检查
+# 运行自动化检查
 ./miniprogram-privacy-auto.sh /path/to/miniprogram
+
+# 查看报告
+cat privacy_check_results/privacy_compliance_report.md
 ```
 
-## 📋 检查内容
+### 方式 2: 使用单个工具
 
-1. 权限声明检查
-2. 敏感 API 扫描（30+ 微信 API）
-3. 数据流分析
-4. 动态调试风险检测
-5. 日志泄露风险检测
-6. 隐私政策检查
-7. 隐私政策命名检查
-8. SDK 使用检测
-9. 混合架构检测
-10. 静态规则引擎
-11. AI 智能体引擎
-12. 权限确认单生成
-13. 自评估表生成
-14. 详细权限报告
-15. Excel 自动填写
+```bash
+# 基础检查工具
+# 1. 权限声明检查
+python3 core/permission_checker.py /path/to/miniprogram -o privacy_check_results
 
-## 📊 输出文件
+# 2. 敏感 API 扫描
+python3 core/api_scanner.py /path/to/miniprogram -o privacy_check_results
 
-- `权限确认单.txt` - 38 项权限详细确认
-- `自评估表.txt` - 28 个评估点自评估
-- `详细权限报告.txt` - 类人工分析报告
-- `{小程序名称}小程序隐私合规检查报告.docx` - Word 格式完整报告
+# 3. 数据流分析
+python3 core/dataflow_analyzer.py /path/to/miniprogram -o privacy_check_results
 
-## 📖 文档
+# 4. 隐私政策检查
+python3 core/privacy_policy_checker.py /path/to/miniprogram -o privacy_check_results
 
-- [快速开始](references/QUICK_START_v3.3.md)
-- [权限映射表](references/permission_mapping.md)
-- [AI 分析指南](references/ai_analysis_guide.md)
-- [Excel 填写指南](references/excel_fill_guide.md)
-- [更新日志](CHANGELOG.md)
+# 5. 生成综合报告
+python3 core/report_generator.py -r privacy_check_results -o privacy_compliance_report.md
 
-## 🔧 技术架构
+# 新增工具 🆕
+# 6. 个人信息收集使用自评估（28个评估点）
+python3 core/self_assessment_tool.py /path/to/miniprogram -o privacy_check_results
 
-```
-混合检测架构
-├── 静态规则引擎（快速）
-│   ├── 30+ 微信官方敏感 API
-│   ├── 已知风险模式库
-│   └── 规则匹配系统
-└── AI 智能体引擎（深度）
-    ├── 代码语义分析
-    ├── 未知风险发现
-    └── 智能评估系统
+# 7. 申请权限确认单生成（38项权限）
+python3 core/permission_confirmation.py /path/to/miniprogram -o privacy_check_results
+
+# 8. 隐私政策命名检查
+python3 core/privacy_naming_checker.py /path/to/miniprogram -o privacy_check_results
+
+# 9. 第三方SDK检测
+python3 core/sdk_detector.py /path/to/miniprogram -o privacy_check_results
+
+# 10. 增强版检测（8种检测模式）
+python3 core/enhanced_checker.py /path/to/miniprogram -o privacy_check_results
 ```
 
-## 📦 目录结构
+## 📋 检查流程
 
 ```
-miniprogram-privacy-checker/
-├── SKILL.md                 # 技能核心指令
-├── miniprogram-privacy-auto.sh  # 主脚本
-├── requirements.txt         # Python 依赖
-├── src/                     # 源代码
-│   ├── api_scanner.py
-│   ├── permission_checker.py
-│   ├── ai_agent_engine.py
-│   └── ...
-├── core/                    # 核心模块
-├── scripts/                 # 辅助脚本
-├── templates/               # Excel/Word 模板
-├── references/              # 详细文档
-│   ├── permission_mapping.md
-│   ├── ai_analysis_guide.md
-│   └── excel_fill_guide.md
-└── tests/                   # 测试文件
+小程序源代码或 .wxapkg 文件
+    ↓
+[1/7] 权限声明检查
+    ↓
+[2/7] 敏感 API 扫描
+    ↓
+[3/7] 数据流分析
+    ↓
+[4/7] 动态调试风险检测
+    - 检测调试工具（vConsole、eruda）
+    - 检测调试配置
+    - 检测 SourceMap 泄露
+    ↓
+[5/7] 日志泄露风险检测
+    - 检测敏感信息日志输出
+    - 检测认证凭证泄露
+    - 检测个人信息泄露
+    ↓
+[6/7] 隐私政策检查
+    ↓
+[7/7] 生成综合报告
+    ↓
+隐私合规报告
 ```
 
-## 🎯 v3.4 更新
+## 📊 合规评分
 
-### 重大优化
+| 分数 | 等级 | 说明 |
+|------|------|------|
+| 90-100 | ⭐⭐⭐⭐⭐ 优秀 | 合规性很高，审核通过概率大 |
+| 70-89 | ⭐⭐⭐⭐ 良好 | 整体合规，有少量需要改进 |
+| 50-69 | ⭐⭐⭐ 一般 | 存在一些风险，需要修复 |
+| 30-49 | ⭐⭐ 较差 | 存在较多问题，审核可能不通过 |
+| 0-29 | ⭐ 极差 | 严重违规，审核大概率不通过 |
 
-- **SKILL.md 压缩 89%** - 从 1169 行减少到 126 行
-- **符合 AgentSkills 规范** - 遵循 skill-creator 最佳实践
-- **优化上下文使用** - 核心指令始终加载，详细文档按需加载
-- **改进可维护性** - 清晰的文件结构和模块化组织
+## 📁 目录结构
 
-### 新增文档
+```
+miniprogram-privacy/
+├── SKILL.md                           # 核心技能文档
+├── README.md                           # 本文件
+├── miniprogram-privacy-auto.sh           # 自动化检查脚本
+├── core/
+│   ├── permission_checker.py             # 权限声明检查
+│   ├── api_scanner.py                  # 敏感 API 扫描
+│   ├── dataflow_analyzer.py             # 数据流分析
+│   ├── privacy_policy_checker.py        # 隐私政策检查
+│   └── report_generator.py              # 合规报告生成器
+└── templates/
+    └── privacy_policy_template.md       # 隐私政策模板
+```
 
-- `references/permission_mapping.md` - 权限映射表
-- `references/ai_analysis_guide.md` - AI 分析指南
-- `references/excel_fill_guide.md` - Excel 填写指南
+## 📝 输出文件
 
-详见 [CHANGELOG.md](CHANGELOG.md)
+```
+privacy_check_results/
+├── 基础检查报告
+│   ├── permission_check.json               # 权限检查结果（JSON）
+│   ├── permission_check_report.txt        # 权限检查报告（文本）
+│   ├── api_scan.json                      # API 扫描结果（JSON）
+│   ├── api_scan_report.txt                 # API 扫描报告（文本）
+│   ├── dataflow_analysis.json              # 数据流分析结果（JSON）
+│   ├── dataflow_report.txt                 # 数据流分析报告（文本）
+│   ├── privacy_policy_check.json           # 隐私政策检查结果（JSON）
+│   ├── privacy_policy_report.txt           # 隐私政策检查报告（文本）
+│   └── privacy_compliance_report.md       # 综合合规报告（Markdown）
+│
+└── 新增报告 🆕
+    ├── 自评估表.txt                        # 个人信息收集使用自评估表（28项）
+    ├── self_assessment.json                # 自评估结果（JSON）
+    ├── 权限确认单.txt                      # 申请权限确认单（38项）
+    ├── permission_confirmation.json        # 权限确认结果（JSON）
+    ├── privacy_naming_check.json           # 隐私政策命名检查结果
+    ├── sdk_detection.json                  # 第三方SDK检测结果
+    └── enhanced_check.json                 # 增强版检测结果
+```
 
-## 🤝 贡献
+## 🔧 常见问题
 
-欢迎提交 Issue 和 Pull Request！
+### Q: 报告显示缺少权限声明，但我已经声明了？
 
-## 📄 许可证
+A: 请检查 app.json 中 permission 字段的格式是否正确，权限名称是否拼写正确。
 
-[MIT License](LICENSE)
+### Q: 如何修复敏感 API 调用问题？
 
-## 🙏 致谢
+A: 参考报告中的修复建议，通常需要：
+1. 在 app.json 中添加权限声明
+2. 在调用 API 前检查用户授权状态
+3. 在获得用户同意后才调用敏感 API
 
-- [OpenClaw](https://openclaw.ai) - AI Agent 平台
-- [微信小程序](https://developers.weixin.qq.com/miniprogram/dev/framework/) - 开发文档
+### Q: 隐私政策应该放在哪里？
+
+A: 可以放在以下位置之一：
+- 小程序根目录：`privacy.md` 或 `隐私政策.txt`
+- pages 目录：`pages/privacy.md`
+
+### Q: 如何使用隐私政策模板？
+
+A:
+```bash
+# 复制模板
+cp templates/privacy_policy_template.md /path/to/miniprogram/privacy.md
+
+# 根据实际情况编辑模板
+vim /path/to/miniprogram/privacy.md
+```
+
+## 📚 参考标准
+
+本技能基于以下官方标准：
+
+- 《网络安全标准实践指南-移动互联网应用程序（App）系统权限申请使用指南》
+- 《App违法违规收集使用个人信息行为认定方法》
+- 《网络安全标准实践指南—移动互联网应用程序（App）收集使用个人信息自评估指南》
+- 《网络安全标准实践指南-移动互联网应用程序（App）个人信息保护常见问题及处置指南》
+
+## 🌸 维护者
+
+小红 - 专注于网络安全和自动化工具开发的数字女性 AI 伙伴
 
 ---
 
-**维护者**: 小红🌸  
-**GitHub**: https://github.com/nqge/miniprogram-privacy-checker
+**祝你审核顺利！** 🎉

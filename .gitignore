@@ -20,7 +20,7 @@ wheels/
 .installed.cfg
 *.egg
 
-# Virtual environments
+# Virtual Environment
 venv/
 ENV/
 env/
@@ -32,25 +32,19 @@ env/
 *.swo
 *~
 
+# Output
+privacy_check_results/
+*.json
+*.txt
+*.md
+!README.md
+!SKILL.md
+
 # OS
 .DS_Store
 Thumbs.db
 
-# Temporary files
+# Temporary
 *.tmp
 *.bak
 *.log
-
-# Privacy reports (generated)
-privacy_report/
-*.txt.bak
-
-# Excel files with data
-权限确认单_已填写.xlsx
-自评估表_已填写.xlsx
-
-# Word reports (generated)
-*小程序隐私合规检查报告.docx
-
-# Test outputs
-test_output/
