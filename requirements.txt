@@ -1,0 +1,37 @@
+# 小程序隐私合规检查工具依赖管理
+# Python 3.6+
+
+# Word 文档处理
+python-docx>=0.8.11
+
+# Excel 文件处理
+openpyxl>=3.1.2
+
+# HTTP 请求
+requests>=2.31.0
+
+# HTML 解析
+beautifulsoup4>=4.12.0
+lxml>=4.9.0
+
+# 正则表达式（内置）
+# re
+
+# 文件操作（内置）
+# pathlib, json, os, sys
+
+# 日期时间（内置）
+# datetime
+
+# 类型注解（Python 3.6+）
+# typing
+
+# 并发处理（内置）
+# concurrent.futures
+
+# 日志（内置）
+# logging
+
+# 单元测试
+pytest>=7.4.0
+pytest-cov>=4.1.0
